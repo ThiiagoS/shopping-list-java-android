@@ -1,6 +1,7 @@
 package com.example.listadecompras;
 
 import android.content.ContentValues;
+import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
 import android.view.View;
@@ -71,14 +72,20 @@ public class AddListActivity extends AppCompatActivity {
         btnSaveList.setOnClickListener(new View.OnClickListener() {
             @Override
             public void onClick(View v) {
+                DatabaseHelper dbHelper = new DatabaseHelper(AddListActivity.this);
+                SQLiteDatabase db = dbHelper.getWritableDatabase();
+
                 String listName = etListName.getText().toString();
                 if (listName.isEmpty() || selectedItems.isEmpty()) {
-                    // Show error message
                     return;
                 }
 
-                DatabaseHelper dbHelper = new DatabaseHelper(AddListActivity.this);
-                SQLiteDatabase db = dbHelper.getWritableDatabase();
+                String listQuery = "SELECT " + DatabaseHelper.COLUMN_LIST_ID + " FROM " + DatabaseHelper.TABLE_LIST + " WHERE " + DatabaseHelper.COLUMN_LIST_NAME + " = ?";
+                Cursor cursor = db.rawQuery(listQuery, new String[]{listName});
+
+                if(cursor.getCount() > 0) {
+                    return;
+                }
 
                 ContentValues listValues = new ContentValues();
                 listValues.put(DatabaseHelper.COLUMN_LIST_NAME, listName);

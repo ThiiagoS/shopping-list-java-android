@@ -5,6 +5,7 @@ import android.content.Intent;
 import android.database.Cursor;
 import android.database.sqlite.SQLiteDatabase;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -24,9 +25,11 @@ public class EditListActivity extends AppCompatActivity {
     private ListView lvItems;
     private TextView tvTotalPrice;
     private Button btnSaveList;
+    private Button btnDeleteList;
     private ArrayAdapter<String> adapter;
     private ArrayList<String> items;
     private ArrayList<String> selectedItems;
+    private String previusListName;
     private double totalPrice = 0.0;
     private int listId;
 
@@ -39,6 +42,7 @@ public class EditListActivity extends AppCompatActivity {
         lvItems = findViewById(R.id.lvItems);
         tvTotalPrice = findViewById(R.id.tvTotalPrice);
         btnSaveList = findViewById(R.id.btnSaveList);
+        btnDeleteList = findViewById(R.id.btnDeleteList);
 
         items = new ArrayList<>();
         selectedItems = new ArrayList<>();
@@ -55,7 +59,10 @@ public class EditListActivity extends AppCompatActivity {
 
         Intent intent = getIntent();
         String listName = intent.getStringExtra("listName");
+        listName = listName.replaceAll("\\(.*?\\)", "").trim();
+        previusListName = listName;
         etListName.setText(listName);
+
 
         loadExistingItems(listName);
 
@@ -74,14 +81,20 @@ public class EditListActivity extends AppCompatActivity {
         });
 
         btnSaveList.setOnClickListener(v -> {
+            DatabaseHelper dbHelper = new DatabaseHelper(EditListActivity.this);
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+
             String newListName = etListName.getText().toString();
             if (newListName.isEmpty() || selectedItems.isEmpty()) {
-                // Show error message
                 return;
             }
 
-            DatabaseHelper dbHelper = new DatabaseHelper(EditListActivity.this);
-            SQLiteDatabase db = dbHelper.getWritableDatabase();
+            String listQuery = "SELECT " + DatabaseHelper.COLUMN_LIST_ID + " FROM " + DatabaseHelper.TABLE_LIST + " WHERE " + DatabaseHelper.COLUMN_LIST_NAME + " = ?";
+            Cursor cursor = db.rawQuery(listQuery, new String[]{newListName});
+
+            if(cursor.getCount() > 0 && !previusListName.equals(newListName))  {
+                return;
+            }
 
             ContentValues listValues = new ContentValues();
             listValues.put(DatabaseHelper.COLUMN_LIST_NAME, newListName);
@@ -106,15 +119,25 @@ public class EditListActivity extends AppCompatActivity {
             db.close();
             finish();
         });
+
+        btnDeleteList.setOnClickListener(v -> {
+            DatabaseHelper dbHelper = new DatabaseHelper(EditListActivity.this);
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+            db.delete(DatabaseHelper.TABLE_ITEMS, DatabaseHelper.COLUMN_ITEM_LIST_ID + " = ?", new String[]{String.valueOf(listId)});
+            db.delete(DatabaseHelper.TABLE_LIST, DatabaseHelper.COLUMN_LIST_ID + " = ?", new String[]{String.valueOf(listId)});
+            db.close();
+            finish();
+        });
+
     }
 
     private void loadExistingItems(String listName) {
         DatabaseHelper dbHelper = new DatabaseHelper(this);
         SQLiteDatabase db = dbHelper.getReadableDatabase();
 
-        String listQuery = "SELECT " + DatabaseHelper.COLUMN_LIST_ID + " FROM " + DatabaseHelper.TABLE_LIST +
-                " WHERE " + DatabaseHelper.COLUMN_LIST_NAME + " = ?";
+        String listQuery = "SELECT " + DatabaseHelper.COLUMN_LIST_ID + " FROM " + DatabaseHelper.TABLE_LIST + " WHERE " + DatabaseHelper.COLUMN_LIST_NAME + " = ?";
         Cursor cursor = db.rawQuery(listQuery, new String[]{listName});
+
         if (cursor.moveToFirst()) {
             listId = cursor.getInt(cursor.getColumnIndexOrThrow(DatabaseHelper.COLUMN_LIST_ID));
 
