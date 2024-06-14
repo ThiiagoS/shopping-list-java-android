@@ -1,4 +1,4 @@
-package com.example.listadecompras;
+package activities;
 
 import android.content.Intent;
 import android.database.Cursor;
@@ -11,8 +11,12 @@ import android.widget.ListView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.listadecompras.R;
+
 import java.util.ArrayList;
 import java.util.Locale;
+
+import database.DatabaseHelper;
 
 public class ListDetailsActivity extends AppCompatActivity {
 

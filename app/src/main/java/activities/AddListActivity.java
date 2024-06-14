@@ -1,4 +1,4 @@
-package com.example.listadecompras;
+package activities;
 
 import android.content.ContentValues;
 import android.database.Cursor;
@@ -14,9 +14,14 @@ import android.widget.TextView;
 
 import androidx.appcompat.app.AppCompatActivity;
 
+import com.example.listadecompras.R;
+
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.Locale;
+
+import database.DatabaseHelper;
+import utils.Dialog;
 
 public class AddListActivity extends AppCompatActivity {
 
@@ -76,7 +81,13 @@ public class AddListActivity extends AppCompatActivity {
                 SQLiteDatabase db = dbHelper.getWritableDatabase();
 
                 String listName = etListName.getText().toString();
-                if (listName.isEmpty() || selectedItems.isEmpty()) {
+                if (listName.isEmpty()) {
+                    Dialog.showErrorDialog(AddListActivity.this, "Erro", "O nome da lista não pode ser vazio.");
+                    return;
+                }
+
+                if (selectedItems.isEmpty()) {
+                    Dialog.showErrorDialog(AddListActivity.this, "Erro", "Deve ser selecionado pelo menos um item na lista.");
                     return;
                 }
 
@@ -84,6 +95,7 @@ public class AddListActivity extends AppCompatActivity {
                 Cursor cursor = db.rawQuery(listQuery, new String[]{listName});
 
                 if(cursor.getCount() > 0) {
+                    Dialog.showErrorDialog(AddListActivity.this, "Erro", "Este nome de lista já esta sendo utilizado.");
                     return;
                 }
 

@@ -1,4 +1,4 @@
-package com.example.listadecompras;
+package database;
 
 import android.content.ContentValues;
 import android.content.Context;
