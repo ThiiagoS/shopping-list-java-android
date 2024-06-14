@@ -77,7 +77,7 @@ Este é um aplicativo de lista de compras desenvolvido em Java utilizando o Andr
 
 1. Clone o repositório:
    \`\`\`bash
-   git clone https://github.com/seu_usuario/shopping-list-app.git
+   git clone https://github.com/ThiiagoS/shopping-list-java-android.git
    \`\`\`
 
 2. Abra o projeto no Android Studio.
